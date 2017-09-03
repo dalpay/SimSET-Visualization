@@ -84,10 +84,13 @@ block = cell(1, numel(x) - 1);
 
 cm = colormap(lines);
 
-prev = logical(0);
-curr = logical(0);
+% prev, curr, and next are true if the previous, current, next layer is
+% nonscintillating and false if they are scintillating
+prev = logical(1);
+curr = logical(1);
+next = isscalar(blk.act{1}) && (blk.act{1} == 0);
 
-% Loop through each layer
+% Loop through each layer of the block
 for i = 1:numel(x) - 1
 
     faces = (length(blk.y{i})+1)*(length(blk.z{i})+1);
@@ -99,47 +102,63 @@ for i = 1:numel(x) - 1
                         'EdgeColor', 'none', ...
                         'FaceColor', 'flat');
 
-    % prev is true if the current layer is nonscintillating
+    % Update prev, curr, next
     prev = curr;
-    % curr is true if the current layer is nonscintillating
-    curr = isscalar(blk.act{i}) && (blk.act{i} == 0);
+    curr = next;
+    if (i < numel(x) - 1)
+        next = isscalar(blk.act{i+1}) && (blk.act{i+1} == 0);
+    else
+        next = logical(1);
+    end
 
-    % Nonscintillating layers are transparent
+    prev
+    curr
+    next
+
+    % The current layer is transparent if it is nonscintillating
     if (curr)
         block{i}.FaceAlpha = 0.3;
     end
 
+    % Append the boundaries to the y and z vectors
     y = [ blk.min(2), blk.y{i}, blk.max(2) ];
     z = [ blk.min(3), blk.z{i}, blk.max(3) ];
+
+    % Turn the idx vector into a matrix where the indices of the rows and
+    % columns correspond to the y and z coordinates of that segment
     idx = reshape(blk.idx{i}, length(y)-1, length(z)-1);
 
-    % Define the cross-section of the layer
-    ind = 1;
-    for j = 1:length(y) - 1
-        for k = 1:length(z) - 1
-            block{i}.YData(:, ind) = [ y(j+1) y(j+1) y(j) y(j) ]';
-            block{i}.ZData(:, ind) = [ z(k+1) z(k) z(k) z(k+1) ]';
-            block{i}.FaceVertexCData(ind, :) = cm(idx(j, k), :);
-            ind = ind + 1;
+    % If current layer is nonscintillating and both the previous and next
+    % layers are scintillating the front and back faces of the current layer
+    % aren't generated.
+    % Using DeMorgan's law ~(curr && ~prev && ~next) = ~curr || prev || next
+    if (~curr || prev || next)
+        % Define the yz planar cross-section of the layer
+        ind = 1;
+        for j = 1:length(y) - 1
+            for k = 1:length(z) - 1
+                block{i}.YData(:, ind) = [ y(j+1) y(j+1) y(j) y(j) ]';
+                block{i}.ZData(:, ind) = [ z(k+1) z(k) z(k) z(k+1) ]';
+                block{i}.FaceVertexCData(ind, :) = cm(idx(j, k), :);
+                ind = ind + 1;
+            end
         end
     end
 
-    % To prevent interference between the faces of the adjacent layers whether
-    % the front or back of a nonscintillating layer is displayed depends on
-    % the previous and next layer.
-    if ( curr )             % The current layer is nonscintillating
-        if ( ~prev )        % The previous layer is scintillating
+    % Generate the front and back layers only if the current layer is
+    % scintillating or the current layer is nonscintillating and previous and
+    % next layers are also nonscintillating.
+    % By DeMorgan's law,
+    % ~(curr || (curr && prev && next)) = curr && ~(prev && next)
+    if (curr && (~prev || ~next))
+        if (~prev)          % The previous layer is scintillating
             % Only display the back face
             block{i}.XData = x(i+1)*ones(4, faces);
-        %{
-        else if ( ~next )   % The next layer is scintillating
+        elseif (~next)     % The next layer is scintillating
             % Only display the front face
             block{i}.XData = x(i)*ones(4, faces);
-        else                % Both the front and back
-
-        %}
         end
-    else                    % The current layer is scintillating
+    else
         % Display both the front and back faces
         block{i}.XData = [ x(i)*ones(4, faces), x(i+1)*ones(4, faces) ];
         block{i}.YData = repmat(block{i}(1).YData, 1, 2);
@@ -150,15 +169,15 @@ for i = 1:numel(x) - 1
     % Connect the front and back with four faces
     x_sides = [ x(i)*ones(2, 4); x(i+1)*ones(2, 4) ];
 
-    y_sides = [ y(end)*ones(4, 1), ...
-                [ y(end), y(1), y(1), y(end) ]', ...
-                y(1)*ones(4, 1), ...
-                [ y(end), y(1), y(1), y(end) ]' ];
+    y_sides = [ [ y(end), y(end), y(end), y(end) ]', ...
+                [ y(end), y(1),   y(1),   y(end) ]', ...
+                [ y(1),   y(1),   y(1),   y(1)   ]', ...
+                [ y(end), y(1),   y(1),   y(end) ]' ];
 
-    z_sides = [ [ z(end), z(1), z(1), z(end) ]', ...
-                z(1)*ones(4, 1), ...
-                [ z(1), z(end), z(end), z(1) ]', ...
-                z(end)*ones(4, 1) ];
+    z_sides = [ [ z(end), z(1),   z(1),   z(end) ]', ...
+                [ z(1),   z(1),   z(1),   z(1)   ]', ...
+                [ z(1),   z(end), z(end), z(1)   ]', ...
+                [ z(end), z(end), z(end), z(end) ]' ];
 
     c_sides = repmat(cm(idx(1, 1), :), 4, 1);
 
@@ -173,15 +192,15 @@ view(3);
 xlabel('x (cm)');
 ylabel('y (cm)');
 zlabel('z (cm)');
-xlim([blk.min(1) blk.max(1)]);
-ylim([blk.min(2) blk.max(2)]);
-zlim([blk.min(3) blk.max(3)]);
+xlim([blk.min(1), blk.max(1)]);
+ylim([blk.min(2), blk.max(2)]);
+zlim([blk.min(3), blk.max(3)]);
 pbaspect([	blk.max(1) - blk.min(1),
 			blk.max(2) - blk.min(2),
 			blk.max(3) - blk.min(3)	]);
 
 hold on;
-% Loop through each layer
+% Loop through each layer of the block
 for i = 1:numel(block)
     patch(block{i});
 end
