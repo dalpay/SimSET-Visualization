@@ -5,7 +5,7 @@ function tomo = display_tomo(tomo_data)
 % INPUT ARGUMENTS:
 %
 % TOMO_DATA:
-%  A struct array containg the tomograph parameters. Fields include:
+%  A 1xm struct array containg the tomograph parameters. Fields include:
 %       FIELD       DESCRIPTION
 %       filename    The ring-parameter filename.
 %
@@ -36,10 +36,15 @@ function tomo = display_tomo(tomo_data)
 
 tomo = cell(1, numel(tomo_data));
 
+% A 3x2 matrix with the x, y, z bounds of the tomograph. The first column
+% is the lower bound and the second column is the upper bound. The three rows
+% correspond to the x, y, and z dimensions.
+lims = zeros(3, 2);
+
 % Loop through each ring in the tomograph
 for i = 1:numel(tomo_data)
 
-    % The data describing the rings of the tomograph are retrieved in one of
+    % The data describing the rings of the tomograph is retrieved in one of
     % two ways. First, whether a ring-visualization file is exists is checked.
     % The ring-visualization file is the output of display_ring, which is
     % automatically saved when display_ring is called. If display_ring was
@@ -54,19 +59,13 @@ for i = 1:numel(tomo_data)
 
     if (exist(ring_vis, 'file') == 2)
         load(ring_vis);
-        ring
     elseif (exist(ring_parms, 'file') == 2)
-        message = [ 'The tomograph cannot be visualized using the ',
-                    'ring-parameter file at the moment'  ];
-        disp(message);
-        %{
-        build_ring will be everything in display_ring except the visual part
-        ring = build_ring(read_ring(ring_parms));
-        %}
+        disp([  'The tomograph cannot be visualized using the ring-parameter ',
+                'file at the moment' ]);
     else
-        err_str = [ 'Neither the ring-visualization file "%s" ',
-                    'nor the ring-parameter file "%s" can be found.'    ];
-        error(err_str, ring_vis, ring_parms);
+        error([ 'Neither the ring-visualization file "%s" or the ', ...
+                'ring-parameter file "%s" can be found.' ], ...
+                ring_vis, ring_parms);
     end
 
     % Loop through each block-type of the ring
@@ -80,12 +79,19 @@ for i = 1:numel(tomo_data)
             shift = ones(8, 1)*tomo_data(i).shift;
             tomo{i}{j}(k).Vertices(:, 3) = ring{j}(k).Vertices(:, 3) + shift;
 
-            % Rotate the blocks in the xy-plane by multiplying the vertices
-            % by the rotation matrix
+            % Rotate the blocks in the xy-plane
             ang = tomo_data(i).rot*pi/180;
             rot = [ cos(ang), -sin(ang);
                     sin(ang), cos(ang)  ];
             tomo{i}{j}(k).Vertices(:, 1:2) = ring{j}(k).Vertices(:, 1:2)*rot;
+
+            % Get the coordinates of the bounds of the ring, and replace
+            % the existing bounds if the new bounds contain the old
+            for n = 1:3
+                verts = tomo{i}{j}(k).Vertices;
+                lims(n, 1) = min(lims(n, 1), min(verts(:, n)));
+                lims(n, 2) = max(lims(n, 2), max(verts(:, n)));
+            end
         end
     end
 end
@@ -95,11 +101,11 @@ view(3);
 xlabel('x (cm)');
 ylabel('y (cm)');
 zlabel('z (cm)');
-c = 25;     % TODO: Fix the plotbox limits and aspect ratio
-xlim([-c c]);
-ylim([-c c]);
-zlim([-c c]);
-pbaspect(2*c*[ones(1, 3)]);
+lims
+xlim(lims(1, :));
+ylim(lims(2, :));
+zlim(lims(3, :));
+pbaspect((lims(:, 2) - lims(:, 1))');
 
 % Loop through each ring in the tomograph
 hold on;
