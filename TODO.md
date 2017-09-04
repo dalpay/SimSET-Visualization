@@ -1,4 +1,4 @@
-# Todo
+# TODO
 
 ## display_tomo
 - Enable rings to be read by parameter files.

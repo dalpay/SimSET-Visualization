@@ -68,7 +68,7 @@ function ring = display_ring(ring_data, block_data)
 ring = cell(1, size(block_data, 2));
 cm = colormap(lines);
 
-% Loop through each block type
+% Loop through each block type of the ring
 prev_filename = '';
 for i = 1:numel(block_data)
 
@@ -86,33 +86,13 @@ for i = 1:numel(block_data)
 
             blockparams = fileread(block.filename);
 
-            dims = ['x', 'y', 'z'];
             refstr = {'REAL	block_reference_', '       =   '};
             minstr = {'REAL	block_', '_minimum         =   '};
             maxstr = {'REAL	block_', '_maximum         =   '};
-            token = '(-?[0-9]+\.[0-9]+)';
 
-            ref = zeros(1, 3);
-            min = zeros(1, 3);
-            max = zeros(1, 3);
-
-            % Loop through the x, y, z dimensions
-            for j = 1:3
-                % Reference
-                ref_expr = [refstr{1}, dims(j), refstr{2}, token];
-                ref_token = regexp(blockparams, ref_expr, 'tokens');
-                ref(j) = str2double(ref_token{1, 1});
-
-                % Minimum
-                min_expr = [minstr{1}, dims(j), minstr{2}, token];
-                min_token = regexp(blockparams, min_expr, 'tokens');
-                min(j) = str2double(min_token{1, 1});
-
-                % Maxiumum
-                max_expr = [maxstr{1}, dims(j), maxstr{2}, token];
-                max_token = regexp(blockparams, max_expr, 'tokens');
-                max(j) = str2double(max_token{1, 1});
-            end
+            ref = get_coordinates(refstr, blockparams);
+            min = get_coordinates(minstr, blockparams);
+            max = get_coordinates(maxstr, blockparams);
         end
     else
         error(  'The block-parameter file "%s" cannot be found.', ...
@@ -129,7 +109,7 @@ for i = 1:numel(block_data)
         block.tilt = repmat(block.tilt, block.count, 1);
     end
 
-    % Loop through each individual block
+    % Loop through each block of a block-type
     for j = 1:block.count
 
         ring{i}(j) = struct('Vertices', [], 'Faces', [], 'FaceColor', color);
@@ -137,10 +117,10 @@ for i = 1:numel(block_data)
         % Vertices are defined from the top-left going clockwise when
         % looking from the xy-plane which is parallel to the xz plane of
         % the coordinate space where the block dimensions are defined
-        vert = [    min(1) max(3);
-                    max(1) max(3);
-                    max(1) min(3);
-                    min(1) min(3)   ];
+        vert = [    min(1), max(3);
+                    max(1), max(3);
+                    max(1), min(3);
+                    min(1), min(3)   ];
 
         % Rotate the block by the sum of the azimuth and tilt by
         % multiplying the vertices in the xy-plane by the rotation matrix
@@ -187,9 +167,9 @@ view(3);
 xlabel('x (cm)');
 ylabel('y (cm)');
 zlabel('z (cm)');
-xlim([-ring_data.r_max ring_data.r_max]);
-ylim([-ring_data.r_max ring_data.r_max]);
-zlim([-ring_data.r_max ring_data.r_max]);
+xlim([-ring_data.r_max, ring_data.r_max]);
+ylim([-ring_data.r_max, ring_data.r_max]);
+zlim([-ring_data.r_max, ring_data.r_max]);
 pbaspect(2*ring_data.r_max*ones(1, 3));
 
 hold on;
@@ -206,5 +186,41 @@ for i = 1:numel(ring)
     end
 end
 hold off;
+
+end
+
+% Parses params, the block-parameter file, for the given pattern which
+% defines the coordinates of a point of interest of the block.
+%
+% USAGE: COOR = get_coordinates(PATTERN, PARAMS)
+%
+% INPUT ARGUMENTS:
+%
+% PATTERN
+%  A 1x2 cell-array where the first entry is the line before the
+%  character x, y, z and the second entry is the rest of the line.
+%
+% PARAMS
+%  A character vector of the block-parameter file.
+%
+% OUTPUT: COOR
+%  Returns a 1x3 vector with the x, y, z coordinates.
+function coor = get_coordinates(pattern, params)
+
+token = '(-?[0-9]+\.[0-9]+)';
+dims = ['x', 'y', 'z'];
+coor = zeros(1, 3);
+
+% Loop through the x, y, z dimensions
+for i = 1:3
+    expr = [pattern{1}, dims(i), pattern{2}, token];
+    val = regexp(params, expr, 'tokens');
+    if (~isempty(val))
+        coor(i) = str2double(val{1, 1});
+    else
+        error([ 'The block-parameter file does not contain the ', ...
+                'block dimensions in the proper format.']);
+    end
+end
 
 end
