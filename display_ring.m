@@ -1,10 +1,17 @@
-function ring = display_ring(ring_data, block_data)
+function ring = display_ring(data)
 %
-% USEAGE: BLOCKS = display_ring(RING_DATA, BLOCKS_DATA);
+% USEAGE: RING = display_ring(DATA);
 %
 % INPUT ARGUMENTS:
 %
-% RING_DATA
+% DATA
+%  If DATA is a 1x2 struct it is assumed that DATA{1} contains the ring
+%  parameters and DATA{2} contains the block arrangement.
+%  If DATA is a 1x3 struct, (as is the case when using the output of
+%  define_ring) DATA{1} is ignored. Instead, DATA{2} is taken to be
+%  the ring parameters and DATA{3} is taken to be the block arrangement.
+%
+% DATA{1}
 %  Structure of ring parameters. Fields include:
 %      FIELD       DESCRIPTION
 %      filename    Ring-parameter filename (overwritten)
@@ -17,7 +24,7 @@ function ring = display_ring(ring_data, block_data)
 %
 %      z_max       maximum axial position of bounding volume.
 %
-% BLOCK_DATA
+% DATA{2}
 %  Array of structures giving number and arrangement for each
 %  type of block. Fields of the I-th block type are stored in
 %  BLOCKS(I).FIELD, where FIELD is:
@@ -65,7 +72,19 @@ function ring = display_ring(ring_data, block_data)
 %
 % Deniz Alpay, 2017-07-30
 
+elems = size(data);
+if (elems(1) == 1 && elems(2) == 3)
+    ring_data = data{2};
+    block_data = data{3};
+elseif (elems(1) == 1 && elems(2) == 2)
+    ring_data = data{1};
+    block_data = data{2};
+else
+    error('The input should be a 1x2 or a 1x3 cell array. See header comment.');
+end
+
 ring = cell(1, size(block_data, 2));
+
 cm = colormap(lines);
 
 % Loop through each block type of the ring
@@ -86,9 +105,9 @@ for i = 1:numel(block_data)
 
             blockparams = fileread(block.filename);
 
-            refstr = {'REAL	block_reference_', '       =   '};
-            minstr = {'REAL	block_', '_minimum         =   '};
-            maxstr = {'REAL	block_', '_maximum         =   '};
+            refstr = {'REAL\s+block_reference_', '\s+=\s+'};
+            minstr = {'REAL\s+block_', '_minimum\s+=\s+'};
+            maxstr = {'REAL\s+block_', '_maximum\s+=\s+'};
 
             ref = get_coordinates(refstr, blockparams);
             min = get_coordinates(minstr, blockparams);
@@ -189,6 +208,7 @@ hold off;
 
 end
 
+function coor = get_coordinates(pattern, params)
 % Parses params, the block-parameter file, for the given pattern which
 % defines the coordinates of a point of interest of the block.
 %
@@ -205,8 +225,6 @@ end
 %
 % OUTPUT: COOR
 %  Returns a 1x3 vector with the x, y, z coordinates.
-function coor = get_coordinates(pattern, params)
-
 token = '(-?[0-9]+\.[0-9]+)';
 dims = ['x', 'y', 'z'];
 coor = zeros(1, 3);

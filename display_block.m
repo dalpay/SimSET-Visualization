@@ -1,10 +1,10 @@
-function block = display_block(blk)
+function block = display_block(blk_data)
 %
-% USAGE: display_block(BLK);
+% USAGE: BLOCK = display_block(blk_data);
 %
 % INPUT ARGUMENTS:
 %
-% BLK
+% BLK_DATA
 %  Structure of block parameters. Fields include:
 %      FIELD       DESCRIPTION
 %      fn    Name of block parameter file
@@ -78,7 +78,7 @@ function block = display_block(blk)
 %
 % Deniz Alpay, 2017-08-15
 
-x = [ blk.min(1), blk.x, blk.max(1) ];
+x = [ blk_data.min(1), blk_data.x, blk_data.max(1) ];
 
 block = cell(1, numel(x) - 1);
 
@@ -88,12 +88,12 @@ cm = colormap(lines);
 % nonscintillating and false if they are scintillating
 prev = logical(1);
 curr = logical(1);
-next = isscalar(blk.act{1}) && (blk.act{1} == 0);
+next = isscalar(blk_data.act{1}) && (blk_data.act{1} == 0);
 
 % Loop through each layer of the block
 for i = 1:numel(x) - 1
 
-    faces = (length(blk.y{i})+1)*(length(blk.z{i})+1);
+    faces = (length(blk_data.y{i})+1)*(length(blk_data.z{i})+1);
 
     block{i} = struct(  'XData', [], ...
                         'YData', [], ...
@@ -106,14 +106,10 @@ for i = 1:numel(x) - 1
     prev = curr;
     curr = next;
     if (i < numel(x) - 1)
-        next = isscalar(blk.act{i+1}) && (blk.act{i+1} == 0);
+        next = isscalar(blk_data.act{i+1}) && (blk_data.act{i+1} == 0);
     else
         next = logical(1);
     end
-
-    prev
-    curr
-    next
 
     % The current layer is transparent if it is nonscintillating
     if (curr)
@@ -121,12 +117,12 @@ for i = 1:numel(x) - 1
     end
 
     % Append the boundaries to the y and z vectors
-    y = [ blk.min(2), blk.y{i}, blk.max(2) ];
-    z = [ blk.min(3), blk.z{i}, blk.max(3) ];
+    y = [ blk_data.min(2), blk_data.y{i}, blk_data.max(2) ];
+    z = [ blk_data.min(3), blk_data.z{i}, blk_data.max(3) ];
 
     % Turn the idx vector into a matrix where the indices of the rows and
     % columns correspond to the y and z coordinates of that segment
-    idx = reshape(blk.idx{i}, length(y)-1, length(z)-1);
+    idx = reshape(blk_data.idx{i}, length(y)-1, length(z)-1);
 
     % If current layer is nonscintillating and both the previous and next
     % layers are scintillating the front and back faces of the current layer
@@ -192,12 +188,12 @@ view(3);
 xlabel('x (cm)');
 ylabel('y (cm)');
 zlabel('z (cm)');
-xlim([blk.min(1), blk.max(1)]);
-ylim([blk.min(2), blk.max(2)]);
-zlim([blk.min(3), blk.max(3)]);
-pbaspect([	blk.max(1) - blk.min(1),
-			blk.max(2) - blk.min(2),
-			blk.max(3) - blk.min(3)	]);
+xlim([blk_data.min(1), blk_data.max(1)]);
+ylim([blk_data.min(2), blk_data.max(2)]);
+zlim([blk_data.min(3), blk_data.max(3)]);
+pbaspect([	blk_data.max(1) - blk_data.min(1),
+			blk_data.max(2) - blk_data.min(2),
+			blk_data.max(3) - blk_data.min(3)	]);
 
 hold on;
 % Loop through each layer of the block

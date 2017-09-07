@@ -86,7 +86,8 @@ for i = 1:numel(tomo_data)
             tomo{i}{j}(k).Vertices(:, 1:2) = ring{j}(k).Vertices(:, 1:2)*rot;
 
             % Get the coordinates of the bounds of the ring, and replace
-            % the existing bounds if the new bounds contain the old
+            % the existing bounds if the new bounds contain the old.
+            % Loop through the x, y, z dimensions
             for n = 1:3
                 verts = tomo{i}{j}(k).Vertices;
                 lims(n, 1) = min(lims(n, 1), min(verts(:, n)));
