@@ -45,13 +45,14 @@ lims = zeros(3, 2);
 for i = 1:numel(tomo_data)
 
     % The data describing the rings of the tomograph is retrieved in one of
-    % two ways. First, whether a ring-visualization file is exists is checked.
-    % The ring-visualization file is the output of display_ring, which is
+    % two ways. First, whether a ring visualization file exists is checked.
+    % The ring visualization file is the output of display_ring, which is
     % automatically saved when display_ring is called. If display_ring was
     % called on the rings used in the tomograph, the ring data will be aquired
-    % from the ring-visualization files. In a future version of display_tomo,
-    % the ring data will be retrieved from the ring-paramter files if the
-    % ring-visualization files do not exist.
+    % from the ring visualization files. In the case that the ring visualization
+    % file doesn't exist, whether the ring parameter file exists is checked.
+    % If the ring parameter file exists, it is read and parsed using read_ring.
+    % The second option is much more computationally expensive.
 
     ring_parms = tomo_data(i).filename;
     ring_fn = split(ring_parms , '.');
@@ -60,8 +61,8 @@ for i = 1:numel(tomo_data)
     if (exist(ring_vis, 'file') == 2)
         load(ring_vis);
     elseif (exist(ring_parms, 'file') == 2)
-        disp([  'The tomograph cannot be visualized using the ring-parameter ',
-                'file at the moment' ]);
+        [ring, blocks] = read_ring(ring_parms);
+        ring = build_ring({ring, blocks});
     else
         error([ 'Neither the ring-visualization file "%s" or the ', ...
                 'ring-parameter file "%s" can be found.' ], ...
@@ -97,12 +98,11 @@ for i = 1:numel(tomo_data)
     end
 end
 
-% Display the ring-visualization
+% Display the tomograph
 view(3);
 xlabel('x (cm)');
 ylabel('y (cm)');
 zlabel('z (cm)');
-lims
 xlim(lims(1, :));
 ylim(lims(2, :));
 zlim(lims(3, :));
