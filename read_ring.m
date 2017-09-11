@@ -89,26 +89,30 @@ ring.z_max = get_val(maxstr, ring_params);
 % BLOCKS
 
 % filename
-fnexpr = 'STR\s+ring_block_parameter_file\s+=\s+"([a-zA-Z_-.]+)"';
+fnexpr = 'STR\s+ring_block_parameter_file\s*=\s*"([a-zA-Z_-.]+)"';
 fn = regexp(ring_params, fnexpr, 'tokens');
 
 % r_min
-rstr = 'REAL\s+ring_block_radial_position\s+=\s+';
+rstr = 'REAL\s+ring_block_radial_position\s*=\s*';
 r_min = get_val(rstr, ring_params);
 
 % azimuth
-azstr = 'REAL\s+ring_block_angular_position\s+=\s+';
+azstr = 'REAL\s+ring_block_angular_position\s*=\s*';
 azimuth = get_val(azstr, ring_params);
 
 % z_pos
-zstr = 'REAL\s+ring_block_z_position\s+=\s+';
+zstr = 'REAL\s+ring_block_z_position\s*=\s*';
 z_pos = get_val(zstr, ring_params);
 
 % tilt
-tiltstr = 'REAL\s+ring_block_transaxial_orientation\s+=\s+';
+tiltstr = 'REAL\s+ring_block_transaxial_orientation\s*=\s*';
 tilt = get_val(tiltstr, ring_params);
 
-num_blks = 16;  % TODO: FIX THIS SHIT
+% Check that the there's the same number of each parameter
+num_blks = numel(fn);
+if ( num_blks ~= [numel(r_min), numel(azimuth), numel(z_pos), numel(tilt)])
+    error('The parameter file is not formatted correctly.');
+end
 
 for i = 1:num_blks
     blocks(i) = struct( 'filename', fn{i},         ...
