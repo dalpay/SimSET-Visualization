@@ -1,6 +1,6 @@
 function tomo = display_tomo(tomo_data)
 %
-% USEAGE: TOMO = display_tomo(TOMO_DATA)
+% USAGE: TOMO = display_tomo(TOMO_DATA)
 %
 % INPUT ARGUMENTS:
 %
@@ -49,7 +49,7 @@ for i = 1:numel(tomo_data)
     % The ring visualization file is the output of display_ring, which is
     % automatically saved when display_ring is called. If display_ring was
     % called on the rings used in the tomograph, the ring data will be aquired
-    % from the ring visualization files. In the case that the ring visualization
+    % from the ring visualization files. In the case that the ring  visualization
     % file doesn't exist, whether the ring parameter file exists is checked.
     % If the ring parameter file exists, it is read and parsed using read_ring.
     % The second option is much more computationally expensive.
@@ -62,7 +62,7 @@ for i = 1:numel(tomo_data)
         load(ring_vis);
     elseif (exist(ring_parms, 'file') == 2)
         [ring, blocks] = read_ring(ring_parms);
-        ring = build_ring({ring, blocks});
+        ring = build_ring(ring, blocks);
     else
         error([ 'Neither the ring-visualization file "%s" or the ', ...
                 'ring-parameter file "%s" can be found.' ], ...

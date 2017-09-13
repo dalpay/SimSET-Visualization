@@ -1,6 +1,6 @@
 function tomo = read_tomo(filename)
 %
-% USEAGE: TOMO = read_tomo(FILENAME)
+% USAGE: TOMO = read_tomo(FILENAME)
 %
 % INPUT ARGUMENTS:
 %

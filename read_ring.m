@@ -1,6 +1,6 @@
 function [ring, blocks] = read_ring(filename)
 %
-% USEAGE: RING = read_ring(FILENAME)
+% USAGE: RING = read_ring(FILENAME)
 %
 % INPUT ARGUMENTS:
 %
@@ -68,7 +68,7 @@ dims = ['x', 'y'];
 innerstr = {'REAL\s+ring_', '_inner_radius\s+=\s+'};
 outerstr = {'REAL\s+ring_', '_outer_radius\s+=\s+'};
 
-for i = 1:2
+for i = 1:numel(dims)
     innerpat = [innerstr{1}, dims(i), innerstr{2}];
     inner(i) = get_val(innerpat, ring_params);
 

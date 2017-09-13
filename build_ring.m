@@ -1,17 +1,10 @@
-function ring = build_ring(data)
+function ring = build_ring(ring_data, block_data)
 %
-% USEAGE: RING = build_ring(DATA);
+% USAGE: RING = build_ring(DATA);
 %
 % INPUT ARGUMENTS:
 %
-% DATA
-%  If DATA is a 1x2 struct it is assumed that DATA{1} contains the ring
-%  parameters and DATA{2} contains the block arrangement.
-%  If DATA is a 1x3 struct, (as is the case when using the output of
-%  define_ring) DATA{1} is ignored. Instead, DATA{2} is taken to be
-%  the ring parameters and DATA{3} is taken to be the block arrangement.
-%
-% DATA{1}
+% RING_DATA
 %  Structure of ring parameters. Fields include:
 %      FIELD       DESCRIPTION
 %      filename    Ring-parameter filename (overwritten)
@@ -24,7 +17,7 @@ function ring = build_ring(data)
 %
 %      z_max       maximum axial position of bounding volume.
 %
-% DATA{2}
+% BLOCK_DATA
 %  Array of structures giving number and arrangement for each
 %  type of block. Fields of the I-th block type are stored in
 %  BLOCKS(I).FIELD, where FIELD is:
@@ -71,17 +64,6 @@ function ring = build_ring(data)
 %       FaceColor   A 3x1 vector containing the RGB values of the faces.
 %
 % Deniz Alpay, 2017-09-06
-
-elems = size(data);
-if (elems(1) == 1 && elems(2) == 3)
-    ring_data = data{2};
-    block_data = data{3};
-elseif (elems(1) == 1 && elems(2) == 2)
-    ring_data = data{1};
-    block_data = data{2};
-else
-    error('The input should be a 1x2 or a 1x3 cell array. See header comment.');
-end
 
 ring = cell(1, size(block_data, 2));
 
@@ -134,12 +116,11 @@ for i = 1:numel(block_data)
         ring{i}(j) = struct('Vertices', [], 'Faces', [], 'FaceColor', color);
 
         % Vertices are defined from the top-left going clockwise when
-        % looking from the xy-plane which is parallel to the xz plane of
-        % the coordinate space where the block dimensions are defined
-        vert = [    min(1), max(3);
-                    max(1), max(3);
-                    max(1), min(3);
-                    min(1), min(3)   ];
+        % looking from the xy-plane
+        vert = [    min(1), max(2);
+                    max(1), max(2);
+                    max(1), min(2);
+                    min(1), min(2)   ];
 
         % Rotate the block by the sum of the azimuth and tilt by
         % multiplying the vertices in the xy-plane by the rotation matrix
@@ -151,8 +132,8 @@ for i = 1:numel(block_data)
         vert = (rot*vert')';
 
         % Append the z coordinates to the vertices
-        vert = [    vert, min(2)*ones(4, 1);
-                    vert, max(2)*ones(4, 1) ];
+        vert = [    vert, min(3)*ones(4, 1);
+                    vert, max(3)*ones(4, 1) ];
 
         % Shift the position of the vertices by the azimuth and radius in
         % the xy-plane and the z-position in the z dimension
@@ -170,7 +151,7 @@ for i = 1:numel(block_data)
     end
 end
 
-% Save the ring visualization data for the tomograph visualization
+% Save the ring visualization data for the ring and tomograph visualizations
 filename = split(ring_data.filename, '.');
 filename = [ char(filename(1)), '.mat' ];
 save(filename, 'ring');

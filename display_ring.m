@@ -1,17 +1,10 @@
-function ring = display_ring(data)
+function ring = display_ring(ring_data, block_data)
 %
-% USEAGE: RING = display_ring(DATA);
+% USAGE: RING = display_ring(DATA);
 %
 % INPUT ARGUMENTS:
 %
-% DATA
-%  If DATA is a 1x2 struct it is assumed that DATA{1} contains the ring
-%  parameters and DATA{2} contains the block arrangement.
-%  If DATA is a 1x3 struct, (as is the case when using the output of
-%  define_ring) DATA{1} is ignored. Instead, DATA{2} is taken to be
-%  the ring parameters and DATA{3} is taken to be the block arrangement.
-%
-% DATA{1}
+% RING_DATA
 %  Structure of ring parameters. Fields include:
 %      FIELD       DESCRIPTION
 %      filename    Ring-parameter filename (overwritten)
@@ -24,7 +17,7 @@ function ring = display_ring(data)
 %
 %      z_max       maximum axial position of bounding volume.
 %
-% DATA{2}
+% BLOCK_DATA
 %  Array of structures giving number and arrangement for each
 %  type of block. Fields of the I-th block type are stored in
 %  BLOCKS(I).FIELD, where FIELD is:
@@ -72,19 +65,18 @@ function ring = display_ring(data)
 %
 % Deniz Alpay, 2017-07-30
 
-elems = size(data);
-if (elems(1) == 1 && elems(2) == 3)
-    ring_data = data{2};
-    block_data = data{3};
-elseif (elems(1) == 1 && elems(2) == 2)
-    ring_data = data{1};
-    block_data = data{2};
-else
-    error('The input should be a 1x2 or a 1x3 cell array. See header comment.');
-end
+ring_fn = split(ring_data.filename , '.');
+ring_vis = [ char(ring_fn(1)), '.mat' ];
 
-% Convert the input parameters into the output containing the vertices and faces
-ring = build_ring(data);
+if (exist(ring_vis, 'file') == 2)
+    load(ring_vis);
+elseif (exist(ring_data.filename, 'file') == 2)
+    ring = build_ring(ring_data, block_data);
+else
+    error([ 'Neither the ring-visualization file "%s" or the ', ...
+            'ring-parameter file "%s" can be found.' ], ...
+            ring_vis, ring_data.filename);
+end
 
 % Define the bounding radial cyclinders
 n = 50; % Number of faces on the cylinders
@@ -100,8 +92,8 @@ ylabel('y (cm)');
 zlabel('z (cm)');
 xlim([-ring_data.r_max, ring_data.r_max]);
 ylim([-ring_data.r_max, ring_data.r_max]);
-zlim([-ring_data.r_max, ring_data.r_max]);
-pbaspect(2*ring_data.r_max*ones(1, 3));
+zlim([ring_data.z_min, ring_data.z_max]);
+pbaspect([2*ring_data.r_max*ones(1, 2), (ring_data.z_max - ring_data.z_min)]);
 
 hold on;
 outer = surf(X_outer, Y_outer, Z_outer);
