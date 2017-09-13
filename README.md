@@ -17,8 +17,11 @@ If you change a block or ring parameter file, but the ring or tomograph visualiz
 The block must be defined using either 'define_regular_block' or 'define_block' which can be found at (2).
 
 '''
+
 example_block = define_regular_block();
+
 display_block(example_block);
+
 '''
 
 ![Block](pics/block.jpg)
@@ -28,8 +31,11 @@ display_block(example_block);
 The ring visualization takes two arguments, a struct containing the bounding dimensions of the ring and a struct containing the arrangement of the blocks. The bounding radial of the ring are also shown by two concentric yellow cylinders.
 
 '''
+
 [ring, blocks] = read_ring('example.ringparms');
+
 display_ring(ring, blocks);
+
 '''
 
 ![Ring](pics/ring.jpg)
@@ -40,7 +46,9 @@ The tomograph shown below is based on the files from the examples at (3).
 
 '''
 tomo = read_tomo('example.detparms');
+
 display_tomo(tomo);
+
 '''
 
 ![Tomograph](pics/tomo.jpg)
