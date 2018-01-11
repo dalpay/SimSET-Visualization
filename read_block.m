@@ -71,7 +71,6 @@ block.min = get_coordinates(min_str, blk_params);
 block.max = get_coordinates(max_str, blk_params);
 
 
-
 end
 
 function coor = get_coordinates(str, params)

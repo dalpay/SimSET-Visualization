@@ -8,13 +8,13 @@ Since the visualizations build upon each other, there are requirements of what f
 
 However, anytime `display_ring` or `display_tomo` is called on a ring or the rings contained in a tomograph, the visualization data for each ring is saved in a mat-file of the same filename as the ring-parameter filename. When the ring-visualization data is required when visualizing the ring or a tomograph containing the ring, the mat-file will be retrieved instead of reading and processing the parameters from scratch when possible. This alternative takes significantly less computational work and keeps the input arguments simple.
 
-If you change a block or ring parameter file, but the ring or tomograph visualization still shows the ring prior to your changes, you may delete the mat-file for the ring and reproduce the mat-file when visualizing the ring or a tomograph containing the ring.
+If you change a block or ring parameter file, but the ring or tomograph visualization still shows the ring prior to your changes, you may delete the mat-file for the ring and reproduce the new mat-file when visualizing the ring or a tomograph containing the ring.
 
 ## Usage and Examples
 
 ### Block-Detector
 
-The block must be defined using either `define_regular_block` or `define_block` which can be found at (2).
+The block must be defined using either `define_regular_block` or `define_block` which can be found at (3). The block shown below is of the block used in the example at (3).
 
 ```
 example_block = define_regular_block();
@@ -25,10 +25,10 @@ display_block(example_block);
 
 ### Ring
 
-The ring visualization takes two arguments, a struct containing the bounding dimensions of the ring and a struct containing the arrangement of the blocks. The bounding radial of the ring are also shown by two concentric yellow cylinders.
+The ring visualization takes two arguments, a struct containing the bounding dimensions of the ring and a struct containing the arrangement of the blocks. The bounding radial dimensions of the ring are also shown by two concentric yellow cylinders. Below is a ring consisting of 20 blocks from the previous example.
 
 ```
-[ring, blocks] = read_ring(`example.ringparms`);
+[ring, blocks] = read_ring('example.ringparms');
 display_ring(ring, blocks);
 ```
 
@@ -39,7 +39,7 @@ display_ring(ring, blocks);
 The tomograph shown below is based on the files from the examples at (3).
 
 ```
-tomo = read_tomo(`example.detparms`);
+tomo = read_tomo('example.detparms');
 display_tomo(tomo);
 ```
 

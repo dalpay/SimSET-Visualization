@@ -85,7 +85,7 @@ n = 50; % Number of faces on the cylinders
 Z_inner = [ring_data.z_min*ones(1, n+1); ring_data.z_max*ones(1, n+1)];
 Z_outer = [ring_data.z_min*ones(1, n+1); ring_data.z_max*ones(1, n+1)];
 
-% Display the rings and cyclinders
+% Set up the display
 view(3);
 xlabel('x (cm)');
 ylabel('y (cm)');
@@ -95,12 +95,8 @@ ylim([-ring_data.r_max, ring_data.r_max]);
 zlim([ring_data.z_min, ring_data.z_max]);
 pbaspect([2*ring_data.r_max*ones(1, 2), (ring_data.z_max - ring_data.z_min)]);
 
+% Display the ring
 hold on;
-outer = surf(X_outer, Y_outer, Z_outer);
-inner = surf(X_inner, Y_inner, Z_inner);
-set(outer, 'FaceAlpha', 0.5, 'FaceColor', 'yellow', 'EdgeColor', 'none');
-set(inner, 'FaceAlpha', 0.5, 'FaceColor', 'yellow', 'EdgeColor', 'none');
-
 % Loop through each block-type of the ring
 for i = 1:numel(ring)
     % Loop through each block of a block-type
@@ -108,6 +104,13 @@ for i = 1:numel(ring)
        patch(ring{i}(j));
     end
 end
+
+% Display the bounding cylinders
+
+outer = surf(X_outer, Y_outer, Z_outer);
+inner = surf(X_inner, Y_inner, Z_inner);
+set(outer, 'FaceAlpha', 0.3, 'FaceColor', 'black', 'EdgeColor', 'none');
+set(inner, 'FaceAlpha', 0.3, 'FaceColor', 'black', 'EdgeColor', 'none');
 hold off;
 
 end

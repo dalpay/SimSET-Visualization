@@ -72,6 +72,7 @@ cm = colormap(lines);
 % Loop through each block type of the ring
 prev_filename = '';
 for i = 1:numel(block_data)
+    
 
     block = block_data(i);
 
@@ -87,9 +88,9 @@ for i = 1:numel(block_data)
 
             blockparams = fileread(block.filename);
 
-            refstr = {'REAL\s+block_reference_', '\s+=\s+'};
-            minstr = {'REAL\s+block_', '_minimum\s+=\s+'};
-            maxstr = {'REAL\s+block_', '_maximum\s+=\s+'};
+            refstr = {'REAL\s+block_reference_', '\s*=\s*'};
+            minstr = {'REAL\s+block_', '_minimum\s*=\s*'};
+            maxstr = {'REAL\s+block_', '_maximum\s*=\s*'};
 
             ref = get_coordinates(refstr, blockparams);
             min = get_coordinates(minstr, blockparams);
